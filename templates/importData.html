@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html data-bs-theme="light" lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>Dashboard - CPSC Recalls</title>
+    <link rel="stylesheet" href="static/assets/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i&amp;display=swap">
+    <link rel="stylesheet" href="static/assets/fonts/fontawesome-all.min.css">
+    <link rel="stylesheet" href="static/assets/css/Articles-Cards-images.css">
+    <link rel="stylesheet" href="static/assets/css/Bootstrap-DataTables.css">
+    <link rel="stylesheet" href="static/assets/css/Data-Table-styles.css">
+    <link rel="stylesheet" href="static/assets/css/Data-Table.css">
+    <link rel="stylesheet" href="static/assets/css/Features-Cards-icons.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.15/css/dataTables.bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.20/css/dataTables.bootstrap4.min.css" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+
+<body id="page-top">
+    <div id="wrapper">
+        <nav class="navbar align-items-start sidebar sidebar-dark accordion bg-gradient-primary p-0 navbar-dark">
+            <div class="container-fluid d-flex flex-column p-0"><a class="navbar-brand d-flex justify-content-center align-items-center sidebar-brand m-0" href="#">
+                    <div class="sidebar-brand-icon rotate-n-15"><img src="static/assets/img/CPSClogo.png" width="50" height="50"></div>
+                    <div class="sidebar-brand-text mx-3"><span>CPSC&nbsp;</span></div>
+                </a>
+                <hr class="sidebar-divider my-0">
+                <ul class="navbar-nav text-light" id="accordionSidebar">
+                    <li class="nav-item"></li>
+                    <li class="nav-item"></li>
+                    <li class="nav-item"><a class="nav-link" href="/logout"><i class="far fa-user-circle"></i><span>Logout</span></a><a class="nav-link" href="/profile"><i class="fas fa-user"></i><span>Profile</span></a><a class="nav-link" href="/dashboard"><i class="fas fa-table"></i><span>Dashboard</span></a></li>
+                    <li class="nav-item"><a class="nav-link active" href="/importdata"><i class="fas fa-tachometer-alt"></i><span>Import Data</span></a></li>
+                    <li class="nav-item"></li>
+                    <li class="nav-item"><a class="nav-link" href="/highpriority"><i class="fas fa-window-maximize"></i><span>High Priority</span></a></li>
+                </ul>
+                <div class="text-center d-none d-md-inline"><button class="btn rounded-circle border-0" id="sidebarToggle" type="button"></button></div>
+            </div>
+        </nav>
+        <div class="d-flex flex-column" id="content-wrapper">
+            <div id="content">
+                <div class="container-fluid">
+                    <div class="d-sm-flex justify-content-between align-items-center mb-4"></div>
+                    <div class="row">
+                        <div class="col"><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CPSC Recall Table</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+</head>
+<body>
+
+<div class="container mt-4">
+    <h2 class="mb-3">CPSC Recall System</h2>
+    <!-- Import Button and File Input -->
+    <input type="file" id="fileInput" accept=".csv" style="display: none;">
+    <button id="importBtn" class="btn btn-primary mb-3">Import Data</button>
+
+    <!-- Status Message -->
+    <p id="uploadStatus" class="text-success" style="display: none;">File uploaded successfully!</p>
+
+    <!-- Table -->
+    <div class="table-responsive">
+        <table id="recallsTable" class="table table-striped table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>Recall Number</th>
+                    <th>Report Date</th>
+                    <th>Product Name</th>
+                    <th>Reason For Recall</th>
+                    <th>Units Affected</th>
+                    <th>Priority</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for recall in recall_data %}
+                <tr>
+                    <td>{{ recall.Recall_Number }}</td>
+                    <td>{{ recall.Date }}</td> 
+                    <td>{{ recall.Name_of_product }}</td> 
+                    <td>{{ recall.Description }}</td> 
+                    <td>{{ recall.Units }}</td> 
+                    <td><select class="form-select priority-dropdown" data-recall-number="{{ recall.Recall_Number }}">
+                        <option value="High" class="text-danger" {% if recall.Priority == 'High' %}selected{% endif %}>High</option>
+                        <option value="Medium" class="text-warning" {% if recall.Priority == 'Medium' %}selected{% endif %}>Medium</option>
+                        <option value="Low" class="text-success" {% if recall.Priority == 'Low' %}selected{% endif %}>Low</option>
+                    </select>
+                    </select>
+                </td>
+                </tr>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<!-- JS for import data button -->
+<script>
+    document.getElementById('importBtn').addEventListener('click', function () {
+        document.getElementById('fileInput').click();
+    });
+    
+    document.getElementById('fileInput').addEventListener('change', function () {
+        var file = this.files[0];
+        if (!file) return;
+    
+        var formData = new FormData();
+        formData.append('file', file);
+    
+        fetch('/upload_csv', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('uploadStatus').style.display = 'block';
+                location.reload(); // Reload the page to reflect new data
+            } else {
+                alert('Error uploading file: ' + data.message);
+            }
+        })
+        .catch(error => console.error('Upload failed:', error));
+    });
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            document.getElementById("update-all-btn").addEventListener("click", function() {
+                let updates = [];
+        
+                // Loop through all dropdowns to get selected values
+                document.querySelectorAll(".priority-dropdown").forEach(dropdown => {
+                    let recallNumber = dropdown.getAttribute("data-recall-number");
+                    let newPriority = dropdown.value;
+        
+                    updates.push({ recall_number: recallNumber, priority: newPriority });
+                });
+        
+                // Send the update request to Flask
+                fetch("/update_priorities", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(updates)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === "success") {
+                        alert("All priorities updated successfully!");
+                    } else {
+                        alert("Error updating priorities: " + data.message);
+                    }
+                })
+                .catch(error => console.error("Error:", error));
+            });
+        });
+        </script>
+        
+
+    
+<!-- jQuery & DataTables -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $('#recallsTable').DataTable({
+            "paging": true,      // Enables pagination
+            "searching": true,   // Enables search box
+            "ordering": true,    // Enables sorting
+            "columnDefs": [
+                { "orderable": false, "targets": 5 } // Disables sorting for Priority dropdown column
+            ]
+        });
+    });
+</script>
+
+</body>
+</html>
+</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-6 offset-lg-3"><button id="update-all-btn" class="btn btn-primary text-bg-success d-block btn-user w-100" type="submit">Update All Priorities</button></div>
+                    </div>
+                </div>
+            </div>
+            <footer class="bg-white sticky-footer">
+                <div class="container my-auto">
+                    <div class="text-center my-auto copyright"><span>Copyright © CPSC Recalls 2025</span></div>
+                </div>
+            </footer>
+        </div><a class="border rounded d-inline scroll-to-top" href="#page-top"><i class="fas fa-angle-up"></i></a>
+    </div>
+    <script src="static/assets/bootstrap/js/bootstrap.min.js"></script>
+    <script src="static/assets/js/bs-init.js"></script>
+    <script src="https://cdn.datatables.net/1.10.15/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.15/js/dataTables.bootstrap.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.20/js/dataTables.bootstrap4.min.js"></script>
+    <script src="static/assets/js/Bootstrap-DataTables-main.js"></script>
+    <script src="static/assets/js/theme.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

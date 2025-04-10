@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html data-bs-theme="light" lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>Table - CPSC Recalls</title>
+    <link rel="stylesheet" href="static/assets/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i&amp;display=swap">
+    <link rel="stylesheet" href="static/assets/fonts/fontawesome-all.min.css">
+    <link rel="stylesheet" href="static/assets/css/Bootstrap-DataTables.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.20/css/dataTables.bootstrap4.min.css" crossorigin="anonymous">
+</head>
+
+<body id="page-top">
+    <div id="wrapper">
+        <nav class="navbar align-items-start sidebar sidebar-dark accordion bg-gradient-primary p-0 navbar-dark">
+            <div class="container-fluid d-flex flex-column p-0"><a class="navbar-brand d-flex justify-content-center align-items-center sidebar-brand m-0" href="#"><img src="static/assets/img/CPSClogo.png" width="39" height="39">
+                    <div class="sidebar-brand-icon rotate-n-15"></div>
+                    <div class="sidebar-brand-text mx-3"><span>CPSC Recalls</span></div>
+                </a>
+                <hr class="sidebar-divider my-0">
+                <ul class="navbar-nav text-light" id="accordionSidebar">
+                    <li class="nav-item"><a class="nav-link" href="/logout"><i class="far fa-user-circle"></i><span>Logout</span></a><a class="nav-link" href="/profile"><i class="fas fa-user"></i><span>Profile</span></a><a class="nav-link" href="/dashboard"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a></li>
+                    <li class="nav-item"></li>
+                    <li class="nav-item"><a class="nav-link active" href="/marketplacematches"><i class="fas fa-table"></i><span>Marketplace Matches</span></a></li>
+                    <li class="nav-item"></li>
+                    <li class="nav-item"></li>
+                    <li class="nav-item"><a class="nav-link" href="/incidents"><i class="far fa-edit"></i><span>Incidents</span></a></li>
+                    <li class="nav-item"><a class="nav-link" href="/contactseller"><i class="far fa-comment-alt"></i><span>Contact Seller</span></a></li>
+                    <li class="nav-item"></li>
+                </ul>
+                <div class="text-center d-none d-md-inline"><button class="btn rounded-circle border-0" id="sidebarToggle" type="button"></button></div>
+            </div>
+        </nav>
+        <div class="d-flex flex-column" id="content-wrapper">
+            <div id="content">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-md-12"><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CPSC Recall Table</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+</head>
+<body>
+
+<div class="container mt-4">
+    <h2 class="mb-3">Imported Marketplace Listings</h2>
+    <button id="importBtn" class="btn btn-primary mb-3">Add Listing</button>
+<!-- Add Listing Modal -->
+<div class="modal fade" id="addListingModal" tabindex="-1" aria-labelledby="addListingModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addListingModalLabel">Add Marketplace Listing</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addListingForm">
+                    <div class="mb-3">
+                        <label for="productName" class="form-label">Product Name</label>
+                        <input type="text" class="form-control" id="productName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="listingPrice" class="form-label">Listing Price</label>
+                        <input type="number" class="form-control" id="listingPrice" step="0.01" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="dateOfListing" class="form-label">Date of Listing</label>
+                        <input type="date" class="form-control" id="dateOfListing" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="marketplaceName" class="form-label">Marketplace Name</label>
+                        <input type="text" class="form-control" id="marketplaceName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="url" class="form-label">Listing URL</label>
+                        <input type="url" class="form-control" id="url" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="sellername" class="form-label">Seller Name</label>
+                        <input type="text" class="form-control" id="sellername" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="sellerEmail" class="form-label">Seller Email</label>
+                        <input type="email" class="form-control" id="sellerEmail" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Listing</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Delete Listing Button -->
+<button id="deleteListingBtn" class="btn btn-danger mb-3">Delete a Listing</button>
+
+<!-- Delete Listing Modal -->
+<div class="modal fade" id="deleteListingModal" tabindex="-1" aria-labelledby="deleteListingModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteListingModalLabel">Delete a Marketplace Listing</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="deleteListingForm">
+                    <div class="mb-3">
+                        <label for="listingSelect" class="form-label">Select Listing to Delete</label>
+                        <select class="form-control" id="listingSelect" required>
+                            <!-- Options will be populated dynamically -->
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-danger">Delete Listing</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- View Sellers Button -->
+<button id="viewSellersBtn" class="btn btn-info mb-3">View Sellers</button>
+
+<!-- View Sellers Modal -->
+<div class="modal fade" id="viewSellersModal" tabindex="-1" aria-labelledby="viewSellersModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewSellersModalLabel">Sellers List</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Seller ID</th>
+                            <th>Seller Name</th>
+                            <th>Email</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sellersTableBody">
+                        <!-- Data will be populated dynamically -->
+                    </tbody>
+                </table>
+                <button id="deleteUnassociatedSellersBtn" class="btn btn-danger">Delete Unassociated Sellers</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Incident Modal -->
+<div class="modal fade" id="incidentModal" tabindex="-1" aria-labelledby="incidentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <form method="POST" action="/createincident">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="incidentModalLabel">Create Incident</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+  
+          <div class="modal-body">
+            <!-- Listing (pre-filled) -->
+            <div class="mb-3">
+              <label class="form-label">Listing</label>
+              <input type="text" class="form-control" id="listingDisplay" disabled>
+              <input type="hidden" name="listing_id" id="listingIdInput">
+            </div>
+          
+            <!-- Error Message -->
+            <div id="incidentErrorMessage" class="alert alert-danger" style="display: none;">
+              Incident already created for this listing.
+            </div>
+          
+            <!-- Recall dropdown -->
+            <div class="mb-3">
+              <label class="form-label">Recall</label>
+              <select class="form-select" name="recall_id" required>
+                {% for recall in recalls %}
+                <option value="{{ recall.Recall_ID }}">{{ recall.Recall_ID }} - {{ recall.Product_Name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          
+            <!-- Description -->
+            <div class="mb-3">
+              <label class="form-label">Description</label>
+              <textarea name="description" class="form-control" required></textarea>
+            </div>
+          </div>
+          
+  
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-success">Submit Incident</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+    <!-- Table -->
+    <div class="table-responsive">
+        <table id="recallsTable" class="table table-striped table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>Listing ID</th>
+                    <th>Product Name</th>
+                    <th>Seller ID</th>
+                    <th>Listing Price</th>
+                    <th>Date</th>
+                    <th>Marketplace</th>
+                    <th>URL</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for listing in listings %}
+                <tr>
+                    <td>{{ listing.Listing_ID }}</td>
+                    <td>{{ listing.Product_Name }}</td>
+                    <td>{{ listing.Seller_ID }}</td> 
+                    <td>{{ listing.Listing_Price}}</td> 
+                    <td>{{ listing.Date_Of_Listing }}</td>
+                    <td>{{ listing.Marketplace_Name }}</td> 
+                    <td>{{ listing.URL }}</td>   
+                    <td>
+                        <a class="btn btn-warning btn-sm add-incident-btn"
+                          data-bs-toggle="modal"
+                          data-bs-target="#incidentModal"
+                          data-listing-id="{{ listing.Listing_ID }}"
+                          data-product-name="{{ listing.Product_Name }}"
+                          data-marketplace="{{ listing.Marketplace_Name }}">
+                          Add as Incident</a>
+                      </td>
+                </tr>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+    
+<script>
+    document.getElementById("importBtn").addEventListener("click", function () {
+        var myModal = new bootstrap.Modal(document.getElementById("addListingModal"));
+        myModal.show();
+    });
+
+    document.getElementById("addListingForm").addEventListener("submit", async function (event) {
+        event.preventDefault();
+
+        const data = {
+            product_name: document.getElementById("productName").value,
+            listing_price: document.getElementById("listingPrice").value,
+            date_of_listing: document.getElementById("dateOfListing").value,
+            marketplace_name: document.getElementById("marketplaceName").value,
+            url: document.getElementById("url").value,
+            seller_name: document.getElementById("sellername").value,
+            seller_email: document.getElementById("sellerEmail").value
+        };
+
+        try {
+            const response = await fetch("/add_listing", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+            alert(result.message);
+
+            if (response.ok) {
+                location.reload();
+            }
+        } catch (error) {
+            console.error("Error adding listing:", error);
+            alert("An error occurred. Please try again.");
+        }
+    });
+</script>
+
+<script>
+    document.getElementById("deleteListingBtn").addEventListener("click", async function () {
+        var myModal = new bootstrap.Modal(document.getElementById("deleteListingModal"));
+        myModal.show();
+
+        // Fetch listings for the dropdown
+        const response = await fetch("/get_listings");
+        const listings = await response.json();
+        
+        const listingSelect = document.getElementById("listingSelect");
+        listingSelect.innerHTML = "";  // Clear existing options
+
+        listings.forEach(listing => {
+            const option = document.createElement("option");
+            option.value = listing.listing_ID;
+            option.textContent = `${listing.listing_ID} - ${listing.product_name} - ${listing.marketplace_name}`;
+            listingSelect.appendChild(option);
+        });
+    });
+
+    document.getElementById("deleteListingForm").addEventListener("submit", async function (event) {
+        event.preventDefault();
+        
+        const listingId = document.getElementById("listingSelect").value;
+
+        const response = await fetch("/delete_listing", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ listing_ID: listingId })
+        });
+
+        const result = await response.json();
+        alert(result.message);
+
+        if (response.ok) {
+            location.reload();
+        }
+    });
+</script>
+
+<script>
+    document.getElementById("viewSellersBtn").addEventListener("click", async function () {
+        var myModal = new bootstrap.Modal(document.getElementById("viewSellersModal"));
+        myModal.show();
+
+        // Fetch sellers from the database
+        const response = await fetch("/get_sellers");
+        const sellers = await response.json();
+
+        const sellersTableBody = document.getElementById("sellersTableBody");
+        sellersTableBody.innerHTML = "";  // Clear existing data
+
+        sellers.forEach(seller => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${seller.seller_ID}</td>
+                <td>${seller.seller_name}</td>
+                <td>${seller.seller_email}</td>
+            `;
+            sellersTableBody.appendChild(row);
+        });
+    });
+
+    document.getElementById("deleteUnassociatedSellersBtn").addEventListener("click", async function () {
+        const response = await fetch("/delete_unassociated_sellers", { method: "POST" });
+        const result = await response.json();
+        alert(result.message);
+        location.reload();
+    });
+</script>
+
+<!-- jQuery & DataTables -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $('#recallsTable').DataTable({
+            "paging": true,      // Enables pagination
+            "searching": true,   // Enables search box
+            "ordering": true,    // Enables sorting
+            "columnDefs": [
+                { "orderable": false, "targets": 5 } // Disables sorting for Priority dropdown column
+            ]
+        });
+    });
+</script>
+
+<script>
+    let currentRow;
+    let incidentCreated = false; // Keep track if incident has been created
+    
+    document.querySelectorAll('.add-incident-btn').forEach(button => {
+      button.addEventListener('click', function () {
+        const listingId = this.dataset.listingId;
+        const productName = this.dataset.productName;
+        const marketplace = this.dataset.marketplace;
+        const listingLabel = `${listingId} - ${productName} - ${marketplace}`;
+    
+        // Fill the modal form
+        document.getElementById('listingIdInput').value = listingId;
+        document.getElementById('listingDisplay').value = listingLabel;
+    
+        // Reset any previous error messages
+        document.getElementById('incidentErrorMessage').style.display = 'none';
+    
+        // Save reference to row
+        currentRow = this.closest('tr');
+      });
+    });
+    
+    // After modal form submission
+    document.querySelector('#incidentModal form').addEventListener('submit', function (event) {
+      event.preventDefault();
+    
+      const listingId = document.getElementById('listingIdInput').value;
+    
+      if (incidentCreated) {
+        // Show the error message
+        document.getElementById('incidentErrorMessage').style.display = 'block';
+        return; // Prevent form submission
+      }
+    
+      // Simulate the logic for checking if an incident already exists (replace this with an actual API call)
+      const incidentAlreadyCreated = false; // Change this to your actual check
+    
+      if (incidentAlreadyCreated) {
+        incidentCreated = true;
+        document.getElementById('incidentErrorMessage').style.display = 'block';
+        return; // Prevent form submission
+      }
+    
+      // Continue with form submission logic...
+      // Submit form, then set incidentCreated to true
+      incidentCreated = true;
+    
+      // Optionally update row styling to indicate that the incident was added
+      if (currentRow) {
+        currentRow.style.backgroundColor = '#d4edda'; // light green
+        currentRow.querySelector('.add-incident-btn').innerText = "Incident Added";
+        currentRow.querySelector('.add-incident-btn').classList.remove('btn-warning');
+        currentRow.querySelector('.add-incident-btn').classList.add('btn-success');
+        currentRow.querySelector('.add-incident-btn').disabled = true;
+      }
+    
+      // Submit the form or perform necessary actions
+      // You can handle form submission here as needed
+    
+    });
+    
+  </script>
+  
+
+</body>
+</html>
+</div>
+                </div>
+            </div>
+            <footer class="bg-white sticky-footer">
+                <div class="container my-auto">
+                    <div class="text-center my-auto copyright"><span>Copyright © CPSC Recalls 2025</span></div>
+                </div>
+            </footer>
+        </div><a class="border rounded d-inline scroll-to-top" href="#page-top"><i class="fas fa-angle-up"></i></a>
+    </div>
+    <script src="static/assets/bootstrap/js/bootstrap.min.js"></script>
+    <script src="static/assets/js/bs-init.js"></script>
+    <script src="https://cdn.datatables.net/1.10.15/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.15/js/dataTables.bootstrap.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.20/js/dataTables.bootstrap4.min.js"></script>
+    <script src="static/assets/js/Bootstrap-DataTables-main.js"></script>
+    <script src="static/assets/js/theme.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
