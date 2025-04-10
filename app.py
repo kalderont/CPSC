@@ -221,7 +221,7 @@ def get_listings():
 @app.route('/delete_listing', methods=['POST'])
 def delete_listing():
     data = request.json
-    listing_id = data['listing_id']
+    listing_id = data['listing_ID']
 
     conn = get_db_connection()
     cursor = conn.cursor()
