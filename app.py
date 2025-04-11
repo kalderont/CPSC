@@ -1,7 +1,7 @@
 import pyodbc
 import pandas as pd
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session
-from datetime import datetime
+import datetime
 
 app = Flask(__name__)
 app.secret_key = 'sdr382t09fsdupiuHDZJKHFskndusvoiut8wciyrasiojfkcpowgu4v6t7'
@@ -146,12 +146,12 @@ def import_data():
 def import_listings():
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM Marketplace_Listing")
+    cursor.execute("SELECT * FROM Incidents")
     listings = cursor.fetchall()
     cursor.execute("SELECT Recall_ID, Name_of_product FROM Recall")
     recalls = cursor.fetchall()
-    cursor.execute("SELECT Listing_ID, Recall_ID FROM Incidents")
-    existing_incidents = {(row.Listing_ID, row.Recall_ID) for row in cursor.fetchall()}
+    cursor.execute("SELECT Incident_ID, Recall_ID FROM Incidents")
+    existing_incidents = {(row.Incident_ID, row.Recall_ID) for row in cursor.fetchall()}
     cursor.close()
     conn.close()
     return render_template(
@@ -168,7 +168,6 @@ def add_listing():
     product_name = data['product_name']
     listing_price = data['listing_price']
     date_of_listing = data['date_of_listing']
-    marketplace_name = data['marketplace_name']
     url = data['url']
     seller_name = data['seller_name']
     
@@ -190,10 +189,10 @@ def add_listing():
         )
         seller_id = cursor.fetchone()[0]
 
-    # Insert into Marketplace_Listing
+    # Insert into Incident
     cursor.execute(
-        "INSERT INTO Marketplace_Listing (Product_Name, Seller_ID, Listing_Price, Date_Of_Listing, Marketplace_Name, URL) VALUES (?, ?, ?, ?, ?, ?)",
-        (product_name, seller_id, listing_price, date_of_listing, marketplace_name, url)
+        "INSERT INTO Incidents (Recall_Name, Seller_ID, Listing_Price, Response_Date, Listing_URL) VALUES (?, ?, ?, ?, ?)",
+        (product_name, seller_id, listing_price, date_of_listing, url)
     )
 
     conn.commit()
@@ -206,11 +205,11 @@ def get_listings():
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    cursor.execute("SELECT Listing_ID, Product_Name, Marketplace_Name FROM Marketplace_Listing")
+    cursor.execute("SELECT Incident_ID, Recall_Name, Listing_Price FROM Incidents")
     listings = cursor.fetchall()
 
     listing_data = [
-        {"listing_ID": row[0], "product_name": row[1], "marketplace_name": row[-2]}
+        {"listing_ID": row[0], "product_name": row[1], "marketplace_name": row[2]}
         for row in listings
     ]
 
@@ -227,7 +226,7 @@ def delete_listing():
     cursor = conn.cursor()
     
     # Delete the listing
-    cursor.execute("DELETE FROM Marketplace_Listing WHERE Listing_ID = ?", (listing_id,))
+    cursor.execute("DELETE FROM Incidents WHERE Incident_ID = ?", (listing_id,))
     conn.commit()
     conn.close()
 
@@ -255,7 +254,7 @@ def delete_unassociated_sellers():
     cursor = conn.cursor()
     
     cursor.execute("""
-        DELETE FROM Seller WHERE Seller_ID NOT IN (SELECT DISTINCT seller_ID FROM Marketplace_Listing)
+        DELETE FROM Seller WHERE Seller_ID NOT IN (SELECT DISTINCT seller_ID FROM Incidents)
     """)
     deleted_rows = cursor.rowcount
 
@@ -382,95 +381,151 @@ def create_incident():
     conn.close()
     return redirect('/importlistings')  
 
-@app.route('/incidents')
-def incidents():
-    if 'user_id' not in session:
-        flash('You must be logged in to view incidents.')
-        return redirect('/login')
+# @app.route('/incidents')
+# def incidents():
+#     if 'user_id' not in session:
+#         flash('You must be logged in to view incidents.')
+#         return redirect('/login')
 
-    employee_id = session['user_id']
-    conn = get_db_connection()
-    cursor = conn.cursor()
+#     employee_id = session['user_id']
+#     conn = get_db_connection()
+#     cursor = conn.cursor()
 
-    query = """
-        SELECT 
-            i.Incident_ID,
-            i.Incident_Description,
-            r.Recall_ID, r.Name_of_product AS Recall_Product, r.Manufacturers, r.Recall_Status,
-            ml.Listing_ID, ml.Product_Name AS Listing_Product, ml.Marketplace_Name, ml.URL,
-            a.Is_True_Positive
-        FROM Incidents i
-        LEFT JOIN Recall r ON i.Recall_ID = r.Recall_ID
-        LEFT JOIN Marketplace_Listing ml ON i.Listing_ID = ml.Listing_ID
-        LEFT JOIN Annotation a ON a.Incident_ID = i.Incident_ID AND a.Employee_ID = ?
-    """
-    cursor.execute(query, (employee_id,))
-    rows = cursor.fetchall()
+#     query = """
+#         SELECT 
+#             i.Incident_ID,
+#             i.Incident_Description,
+#             r.Recall_ID, r.Name_of_product AS Recall_Product, r.Manufacturers, r.Recall_Status,
+#             ml.Listing_ID, ml.Product_Name AS Listing_Product, ml.Marketplace_Name, ml.URL,
+#             a.Is_True_Positive
+#         FROM Incidents i
+#         LEFT JOIN Recall r ON i.Recall_ID = r.Recall_ID
+#         LEFT JOIN Marketplace_Listing ml ON i.Listing_ID = ml.Listing_ID
+#         LEFT JOIN Annotation a ON a.Incident_ID = i.Incident_ID AND a.Employee_ID = ?
+#     """
+#     cursor.execute(query, (employee_id,))
+#     rows = cursor.fetchall()
 
-    incidents = []
-    for row in rows:
-        incidents.append({
-            'incident_id': row.Incident_ID,
-            'description': row.Incident_Description,
-            'recall_id': row.Recall_ID,
-            'recall_product': row.Recall_Product,
-            'manufacturer': row.Manufacturers,
-            'recall_status': row.Recall_Status,
-            'listing_id': row.Listing_ID,
-            'listing_product': row.Listing_Product,
-            'marketplace': row.Marketplace_Name,
-            'url': row.URL,
-            'annotation': row.Is_True_Positive
-        })
+#     incidents = []
+#     for row in rows:
+#         incidents.append({
+#             'incident_id': row.Incident_ID,
+#             'description': row.Incident_Description,
+#             'recall_id': row.Recall_ID,
+#             'recall_product': row.Recall_Product,
+#             'manufacturer': row.Manufacturers,
+#             'recall_status': row.Recall_Status,
+#             'listing_id': row.Listing_ID,
+#             'listing_product': row.Listing_Product,
+#             'marketplace': row.Marketplace_Name,
+#             'url': row.URL,
+#             'annotation': row.Is_True_Positive
+#         })
 
-    conn.close()
-    return render_template('incidents.html', incidents=incidents)
+#     conn.close()
+#     return render_template('incidents.html', incidents=incidents)
 
+
+
+@app.route('/annotation')
+def annotation():
+    return render_template('annotation.html')
 
 @app.route('/annotate', methods=['POST'])
 def annotate():
     if 'user_id' not in session:
         flash('You must be logged in to annotate.')
         return redirect('/login')
-
-    incident_id = request.form.get('incident_id')
-    label = request.form.get('label')  # 0 or 1 as string
-    annotation_text = request.form.get('annotation_text', '')
+    incident_id = request.form['incident_id']
+    seller_id = request.form['seller_id']
+    is_true_positive = int(request.form['is_true_positive'])
+    annotation_text = request.form['annotation_text']
     employee_id = session['user_id']
+    date_of_annotation = datetime.date.today()
 
-    if incident_id is None or label is None:
-        flash('Missing incident ID or label.')
-        return redirect('/incidents')
-
-    is_true_positive = int(label)
-
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    # Check if annotation already exists
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    
     cursor.execute("""
-        SELECT Annotation_ID FROM Annotation 
-        WHERE Incident_ID = ? AND Employee_ID = ?
-    """, (incident_id, employee_id))
-    existing = cursor.fetchone()
+        INSERT INTO Annotation (Incident_ID, Is_True_Positive, Annotation_Text, Date_Of_Annotation, Employee_ID)
+        VALUES (?, ?, ?, ?, ?)
+    """, incident_id, is_true_positive, annotation_text, date_of_annotation, employee_id)
 
-    if existing:
-        cursor.execute("""
-            UPDATE Annotation
-            SET is_true_positive = ?, Annotation_Text = ?, Date_Of_Annotation = ?
-            WHERE Annotation_ID = ?
-        """, (is_true_positive, annotation_text, datetime.now(), existing.Annotation_ID))
-    else:
-        cursor.execute("""
-            INSERT INTO Annotation (Incident_ID, is_true_positive, Annotation_Text, Date_Of_Annotation, Employee_ID)
-            VALUES (?, ?, ?, ?, ?)
-        """, (incident_id, is_true_positive, annotation_text, datetime.now(), employee_id))
+    connection.commit()
+    connection.close()
 
-    conn.commit()
-    conn.close()
+    return redirect('/marketplacematches')
 
-    flash(f"Annotation for incident #{incident_id} submitted.")
-    return redirect('/incidents')
+@app.route('/save_annotation', methods=['POST'])
+def save_annotation():
+    if 'user_id' not in session:
+        flash('You must be logged in to annotate.')
+        return redirect('/login')
+    incident_id = request.form['incident_id']
+    is_true_positive = int(request.form['is_true_positive'])
+    annotation_text = request.form['annotation_text']
+    employee_id = session['user_id']  # replace with actual user session info
+    date_of_annotation = datetime.date.now()
+
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        INSERT INTO Annotation (Incident_ID, Is_True_Positive, Annotation_Text, Date_Of_Annotation, Employee_ID)
+        VALUES (?, ?, ?, ?, ?)
+    """, incident_id, is_true_positive, annotation_text, date_of_annotation, employee_id)
+
+    connection.commit()
+    connection.close()
+
+    return redirect('/dashboard')
+
+
+
+# @app.route('/annotate', methods=['POST'])
+# def annotate():
+#     if 'user_id' not in session:
+#         flash('You must be logged in to annotate.')
+#         return redirect('/login')
+
+#     incident_id = request.form.get('incident_id')
+#     label = request.form.get('label')  # 0 or 1 as string
+#     annotation_text = request.form.get('annotation_text', '')
+#     employee_id = session['user_id']
+
+#     if incident_id is None or label is None:
+#         flash('Missing incident ID or label.')
+#         return redirect('/incidents')
+
+#     is_true_positive = int(label)
+
+#     conn = get_db_connection()
+#     cursor = conn.cursor()
+
+#     # Check if annotation already exists
+#     cursor.execute("""
+#         SELECT Annotation_ID FROM Annotation 
+#         WHERE Incident_ID = ? AND Employee_ID = ?
+#     """, (incident_id, employee_id))
+#     existing = cursor.fetchone()
+
+#     if existing:
+#         cursor.execute("""
+#             UPDATE Annotation
+#             SET is_true_positive = ?, Annotation_Text = ?, Date_Of_Annotation = ?
+#             WHERE Annotation_ID = ?
+#         """, (is_true_positive, annotation_text, datetime.now(), existing.Annotation_ID))
+#     else:
+#         cursor.execute("""
+#             INSERT INTO Annotation (Incident_ID, is_true_positive, Annotation_Text, Date_Of_Annotation, Employee_ID)
+#             VALUES (?, ?, ?, ?, ?)
+#         """, (incident_id, is_true_positive, annotation_text, datetime.now(), employee_id))
+
+#     conn.commit()
+#     conn.close()
+
+#     flash(f"Annotation for incident #{incident_id} submitted.")
+#     return redirect('/incidents')
 
 
 

@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
-    <title>Dashboard - CPSC Recalls</title>
+    <title>Blank Page - CPSC Recalls</title>
     <link rel="stylesheet" href="static/assets/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i&amp;display=swap">
     <link rel="stylesheet" href="static/assets/fonts/fontawesome-all.min.css">
@@ -21,12 +21,12 @@
                 </a>
                 <hr class="sidebar-divider my-0">
                 <ul class="navbar-nav text-light" id="accordionSidebar">
-                    <li class="nav-item"><a class="nav-link" href="/logout"><i class="far fa-user-circle"></i><span>Logout</span></a><a class="nav-link" href="/profile"><i class="fas fa-user"></i><span>Profile</span></a><a class="nav-link active" href="/dashboard.html"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a></li>
+                    <li class="nav-item"><a class="nav-link" href="/logout"><i class="far fa-user-circle"></i><span>Logout</span></a><a class="nav-link" href="/profile"><i class="fas fa-user"></i><span>Profile</span></a><a class="nav-link" href="/dashboard.html"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a></li>
                     <li class="nav-item"></li>
                     <li class="nav-item"><a class="nav-link" href="/importlistings"><i class="fas fa-table"></i><span>Marketplace Matches</span></a></li>
                     <li class="nav-item"></li>
                     <li class="nav-item"></li>
-                    <li class="nav-item"><a class="nav-link" href="/annotation"><i class="far fa-edit"></i><span>Annotation</span></a></li>
+                    <li class="nav-item"><a class="nav-link active" href="/annotation"><i class="far fa-edit"></i><span>Annotation</span></a></li>
                     <li class="nav-item"><a class="nav-link" href="/contactseller"><i class="far fa-comment-alt"></i><span>Contact Seller</span></a></li>
                     <li class="nav-item"></li>
                 </ul>
@@ -35,63 +35,63 @@
         </nav>
         <div class="d-flex flex-column" id="content-wrapper">
             <div id="content">
-                <div class="container-fluid">
-                    <div class="d-sm-flex justify-content-between align-items-center mb-4"></div>
-                    <div class="row"><!DOCTYPE html>
+                <div class="container">
+                    <div class="row">
+                        <div class="col-md-12"><!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - CPSC Investigator</title>
+    <title>Annotate Listing</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
+
     <div class="container mt-4">
-        <h2 class="text-center">Investigator Dashboard - High Priority Recalls</h2>
-        <div class="table-responsive">
-            <table id="recallsTable" class="table table-striped table-bordered">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Recall Number</th>
-                        <th>Report Date</th>
-                        <th>Product Name</th>
-                        <th>Reason For Recall</th>
-                        <th>Units Affected</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for recall in high_recalls %}
-                    <tr>
-                        <td>{{ recall.Recall_Number }}</td>
-                        <td>{{ recall.Date }}</td> 
-                        <td>{{ recall.Name_of_product }}</td> 
-                        <td>{{ recall.Description }}</td> 
-                        <td>{{ recall.Units }}</td> 
-                    </tr>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+        <h2 class="text-center">Annotate Listing</h2>
+
+        <form>
+            <!-- Recall ID & Product Image in One Row -->
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">Recall ID</label>
+                    <input type="text" class="form-control" placeholder="Enter Recall ID">
+                </div>
+                <div class="col-md-6 text-center">
+                    <label class="form-label d-block">Recalled Product Image</label>
+                    <img src="placeholder.jpg" alt="Recalled Product" class="img-fluid rounded" style="max-width: 200px;">
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Seller Name</label>
+                <input type="text" class="form-control" placeholder="Enter Seller's Name">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Annotation</label>
+                <select class="form-select">
+                    <option>True Positive</option>
+                    <option>False Positive</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Commentary</label>
+                <textarea class="form-control" rows="4" placeholder="Enter notes about the violation or reason for false positive"></textarea>
+            </div>
+
+            <!-- Centered Buttons -->
+            <div class="d-flex justify-content-center gap-3">
+                <button type="submit" class="btn btn-success">Save</button>
+                <a href="/dashboard" class="btn btn-danger">Cancel</a>
+                <a href="/contact_seller" class="btn btn-warning">Proceed to Contact Seller</a>
+            </div>
+        </form>
     </div>
+
 </body>
-
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script>
-    $(document).ready(function () {
-        $('#recallsTable').DataTable({
-            "paging": true,      // Enables pagination
-            "searching": true,   // Enables search box
-            "ordering": true,    // Enables sorting
-        });
-    });
-</script>
-
-
-
 </html>
 </div>
+                    </div>
                 </div>
             </div>
             <footer class="bg-white sticky-footer">

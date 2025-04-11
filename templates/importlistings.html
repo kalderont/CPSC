@@ -26,7 +26,7 @@
                     <li class="nav-item"><a class="nav-link active" href="/marketplacematches"><i class="fas fa-table"></i><span>Marketplace Matches</span></a></li>
                     <li class="nav-item"></li>
                     <li class="nav-item"></li>
-                    <li class="nav-item"><a class="nav-link" href="/incidents"><i class="far fa-edit"></i><span>Incidents</span></a></li>
+                    <li class="nav-item"><a class="nav-link" href="/annotation"><i class="far fa-edit"></i><span>Annotation</span></a></li>
                     <li class="nav-item"><a class="nav-link" href="/contactseller"><i class="far fa-comment-alt"></i><span>Contact Seller</span></a></li>
                     <li class="nav-item"></li>
                 </ul>
@@ -72,10 +72,6 @@
                     <div class="mb-3">
                         <label for="dateOfListing" class="form-label">Date of Listing</label>
                         <input type="date" class="form-control" id="dateOfListing" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="marketplaceName" class="form-label">Marketplace Name</label>
-                        <input type="text" class="form-control" id="marketplaceName" required>
                     </div>
                     <div class="mb-3">
                         <label for="url" class="form-label">Listing URL</label>
@@ -150,52 +146,44 @@
         </div>
     </div>
 </div>
-<!-- Incident Modal -->
-<div class="modal fade" id="incidentModal" tabindex="-1" aria-labelledby="incidentModalLabel" aria-hidden="true">
+
+<div class="modal fade" id="incidentModal" tabindex="-1" aria-labelledby="annotationModalLabel" aria-hidden="true">
     <div class="modal-dialog">
-      <form method="POST" action="/createincident">
-        <div class="modal-content">
+      <div class="modal-content">
+        <form method="POST" action="/annotate">
           <div class="modal-header">
-            <h5 class="modal-title" id="incidentModalLabel">Create Incident</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <h5 class="modal-title" id="annotationModalLabel">Annotate Incident</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
   
           <div class="modal-body">
-            <!-- Listing (pre-filled) -->
+            <input type="hidden" name="incident_id" id="incidentIdInput">
+  
             <div class="mb-3">
-              <label class="form-label">Listing</label>
-              <input type="text" class="form-control" id="listingDisplay" disabled>
-              <input type="hidden" name="listing_id" id="listingIdInput">
+              <label class="form-label">Seller ID</label>
+              <input type="text" class="form-control" name="seller_id" id="sellerIdInput" readonly>
             </div>
-          
-            <!-- Error Message -->
-            <div id="incidentErrorMessage" class="alert alert-danger" style="display: none;">
-              Incident already created for this listing.
-            </div>
-          
-            <!-- Recall dropdown -->
+  
             <div class="mb-3">
-              <label class="form-label">Recall</label>
-              <select class="form-select" name="recall_id" required>
-                {% for recall in recalls %}
-                <option value="{{ recall.Recall_ID }}">{{ recall.Recall_ID }} - {{ recall.Product_Name }}</option>
-                {% endfor %}
+              <label class="form-label">Annotation</label>
+              <select class="form-select" name="is_true_positive">
+                <option value="1">True Positive</option>
+                <option value="0">False Positive</option>
               </select>
             </div>
-          
-            <!-- Description -->
+  
             <div class="mb-3">
-              <label class="form-label">Description</label>
-              <textarea name="description" class="form-control" required></textarea>
+              <label class="form-label">Commentary</label>
+              <textarea class="form-control" name="annotation_text" rows="4"></textarea>
             </div>
           </div>
-          
   
-          <div class="modal-footer">
-            <button type="submit" class="btn btn-success">Submit Incident</button>
+          <div class="modal-footer d-flex justify-content-center gap-3">
+            <button type="submit" class="btn btn-success">Save</button>
+            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
           </div>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
   </div>
   
@@ -209,7 +197,6 @@
                     <th>Seller ID</th>
                     <th>Listing Price</th>
                     <th>Date</th>
-                    <th>Marketplace</th>
                     <th>URL</th>
                     <th>Action</th>
                 </tr>
@@ -217,21 +204,23 @@
             <tbody>
                 {% for listing in listings %}
                 <tr>
-                    <td>{{ listing.Listing_ID }}</td>
-                    <td>{{ listing.Product_Name }}</td>
+                    <td>{{ listing.Incident_ID }}</td>
+                    <td>{{ listing.Recall_Name }}</td>
                     <td>{{ listing.Seller_ID }}</td> 
                     <td>{{ listing.Listing_Price}}</td> 
-                    <td>{{ listing.Date_Of_Listing }}</td>
-                    <td>{{ listing.Marketplace_Name }}</td> 
-                    <td>{{ listing.URL }}</td>   
+                    <td>{{ listing.Response_Date }}</td> 
+                    <td>
+                        <a href="{{ listing.Listing_URL }}" target="_blank">Link</a>
+                    </td>  
                     <td>
                         <a class="btn btn-warning btn-sm add-incident-btn"
-                          data-bs-toggle="modal"
-                          data-bs-target="#incidentModal"
-                          data-listing-id="{{ listing.Listing_ID }}"
-                          data-product-name="{{ listing.Product_Name }}"
-                          data-marketplace="{{ listing.Marketplace_Name }}">
-                          Add as Incident</a>
+                        data-bs-toggle="modal"
+                        data-bs-target="#incidentModal"
+                        data-incident-id="{{ listing.Incident_ID }}"
+                        data-seller-id="{{ listing.Seller_ID }}">
+                        Annotate
+                     </a>
+                     
                       </td>
                 </tr>
                 </tr>
@@ -241,6 +230,26 @@
     </div>
 </div>
     
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const modal = document.getElementById('incidentModal');
+        modal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const incidentId = button.getAttribute('data-incident-id');
+            const sellerId = button.getAttribute('data-seller-id');
+    
+            const incidentInput = modal.querySelector('#incidentIdInput');
+            const sellerInput = modal.querySelector('#sellerIdInput');
+    
+            if (incidentInput && sellerInput) {
+                incidentInput.value = incidentId;
+                sellerInput.value = sellerId;
+            }
+        });
+    });
+  </script>
+    
+
 <script>
     document.getElementById("importBtn").addEventListener("click", function () {
         var myModal = new bootstrap.Modal(document.getElementById("addListingModal"));
@@ -254,7 +263,6 @@
             product_name: document.getElementById("productName").value,
             listing_price: document.getElementById("listingPrice").value,
             date_of_listing: document.getElementById("dateOfListing").value,
-            marketplace_name: document.getElementById("marketplaceName").value,
             url: document.getElementById("url").value,
             seller_name: document.getElementById("sellername").value,
             seller_email: document.getElementById("sellerEmail").value
@@ -367,70 +375,6 @@
     });
 </script>
 
-<script>
-    let currentRow;
-    let incidentCreated = false; // Keep track if incident has been created
-    
-    document.querySelectorAll('.add-incident-btn').forEach(button => {
-      button.addEventListener('click', function () {
-        const listingId = this.dataset.listingId;
-        const productName = this.dataset.productName;
-        const marketplace = this.dataset.marketplace;
-        const listingLabel = `${listingId} - ${productName} - ${marketplace}`;
-    
-        // Fill the modal form
-        document.getElementById('listingIdInput').value = listingId;
-        document.getElementById('listingDisplay').value = listingLabel;
-    
-        // Reset any previous error messages
-        document.getElementById('incidentErrorMessage').style.display = 'none';
-    
-        // Save reference to row
-        currentRow = this.closest('tr');
-      });
-    });
-    
-    // After modal form submission
-    document.querySelector('#incidentModal form').addEventListener('submit', function (event) {
-      event.preventDefault();
-    
-      const listingId = document.getElementById('listingIdInput').value;
-    
-      if (incidentCreated) {
-        // Show the error message
-        document.getElementById('incidentErrorMessage').style.display = 'block';
-        return; // Prevent form submission
-      }
-    
-      // Simulate the logic for checking if an incident already exists (replace this with an actual API call)
-      const incidentAlreadyCreated = false; // Change this to your actual check
-    
-      if (incidentAlreadyCreated) {
-        incidentCreated = true;
-        document.getElementById('incidentErrorMessage').style.display = 'block';
-        return; // Prevent form submission
-      }
-    
-      // Continue with form submission logic...
-      // Submit form, then set incidentCreated to true
-      incidentCreated = true;
-    
-      // Optionally update row styling to indicate that the incident was added
-      if (currentRow) {
-        currentRow.style.backgroundColor = '#d4edda'; // light green
-        currentRow.querySelector('.add-incident-btn').innerText = "Incident Added";
-        currentRow.querySelector('.add-incident-btn').classList.remove('btn-warning');
-        currentRow.querySelector('.add-incident-btn').classList.add('btn-success');
-        currentRow.querySelector('.add-incident-btn').disabled = true;
-      }
-    
-      // Submit the form or perform necessary actions
-      // You can handle form submission here as needed
-    
-    });
-    
-  </script>
-  
 
 </body>
 </html>
