@@ -388,39 +388,41 @@ def incidents():
         flash('You must be logged in to view incidents.')
         return redirect('/login')
 
-    employee_id = session['user_id']
     conn = get_db_connection()
     cursor = conn.cursor()
 
     query = """
         SELECT 
             i.Incident_ID,
-            i.Incident_Description,
-            r.Recall_ID, r.Name_of_product AS Recall_Product, r.Manufacturers, r.Recall_Status,
-            ml.Listing_ID, ml.Product_Name AS Listing_Product, ml.Marketplace_Name, ml.URL,
-            a.Is_True_Positive
+            i.Response_Date,
+            i.Listing_URL,
+            i.Screenshot_URL,
+            i.Recall_ID,
+            i.Recall_Name,
+            i.Seller_ID,
+            i.Employee_ID,
+            i.Listing_Price,
+            i.Listing_URL,
+            i.Screenshot_URL,
+            i.Recall_Name
         FROM Incidents i
-        LEFT JOIN Recall r ON i.Recall_ID = r.Recall_ID
-        LEFT JOIN Marketplace_Listing ml ON i.Listing_ID = ml.Listing_ID
-        LEFT JOIN Annotation a ON a.Incident_ID = i.Incident_ID AND a.Employee_ID = ?
+        ORDER BY i.Response_Date DESC
     """
-    cursor.execute(query, (employee_id,))
+    cursor.execute(query)
     rows = cursor.fetchall()
 
     incidents = []
     for row in rows:
         incidents.append({
             'incident_id': row.Incident_ID,
-            'description': row.Incident_Description,
+            'response_date': row.Response_Date,
+            'listing_url': row.Listing_URL,
+            'screenshot_url': row.Screenshot_URL,
             'recall_id': row.Recall_ID,
-            'recall_product': row.Recall_Product,
-            'manufacturer': row.Manufacturers,
-            'recall_status': row.Recall_Status,
-            'listing_id': row.Listing_ID,
-            'listing_product': row.Listing_Product,
-            'marketplace': row.Marketplace_Name,
-            'url': row.URL,
-            'annotation': row.Is_True_Positive
+            'recall_name': row.Recall_Name,
+            'seller_id': row.Seller_ID,
+            'employee_id': row.Employee_ID,
+            'listing_price': row.Listing_Price
         })
 
     conn.close()
