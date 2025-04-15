@@ -226,7 +226,9 @@ def delete_listing():
     cursor = conn.cursor()
     
     # Delete the listing
+    cursor.execute("DELETE FROM Annotation WHERE Incident_ID = ?", (listing_id,))
     cursor.execute("DELETE FROM Incidents WHERE Incident_ID = ?", (listing_id,))
+
     conn.commit()
     conn.close()
 
@@ -454,7 +456,7 @@ def annotate():
     connection.commit()
     connection.close()
 
-    return redirect('/marketplacematches')
+    return redirect('/importlistings')
 
 @app.route('/save_annotation', methods=['POST'])
 def save_annotation():
