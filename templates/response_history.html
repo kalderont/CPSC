@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html data-bs-theme="light" lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>Response_History - CPSC Recalls</title>
+    <link rel="stylesheet" href="static/assets/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i&display=swap">
+    <link rel="stylesheet" href="static/assets/fonts/fontawesome-all.min.css">
+    <link rel="stylesheet" href="static/assets/css/Articles-Cards-images.css">
+    <link rel="stylesheet" href="static/assets/css/Bootstrap-DataTables.css">
+    <link rel="stylesheet" href="static/assets/css/Data-Table-styles.css">
+    <link rel="stylesheet" href="static/assets/css/Data-Table.css">
+    <link rel="stylesheet" href="static/assets/css/Features-Cards-icons.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.15/css/dataTables.bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.20/css/dataTables.bootstrap4.min.css" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+
+<body id="page-top">
+<div id="wrapper">
+    <nav class="navbar align-items-start sidebar sidebar-dark accordion bg-gradient-primary p-0 navbar-dark">
+        <div class="container-fluid d-flex flex-column p-0">
+            <a class="navbar-brand d-flex justify-content-center align-items-center sidebar-brand m-0" href="#">
+                <div class="sidebar-brand-icon rotate-n-15">
+                    <img src="static/assets/img/CPSClogo.png" width="50" height="50">
+                </div>
+                <div class="sidebar-brand-text mx-3"><span>CPSC&nbsp;</span></div>
+            </a>
+            <hr class="sidebar-divider my-0">
+            <ul class="navbar-nav text-light" id="accordionSidebar">
+                <li class="nav-item"><a class="nav-link" href="/logout"><i class="far fa-user-circle"></i><span>Logout</span></a></li>
+                <li class="nav-item"><a class="nav-link" href="/profile"><i class="fas fa-user"></i><span>Profile</span></a></li>
+                <li class="nav-item"><a class="nav-link" href="/dashboard"><i class="fas fa-table"></i><span>Dashboard</span></a></li>
+                <li class="nav-item"><a class="nav-link active" href="/importdata"><i class="fas fa-tachometer-alt"></i><span>Import Data</span></a></li>
+                <li class="nav-item"><a class="nav-link" href="/highpriority"><i class="fas fa-window-maximize"></i><span>High Priority</span></a></li>
+            </ul>
+            <div class="text-center d-none d-md-inline"><button class="btn rounded-circle border-0" id="sidebarToggle" type="button"></button></div>
+        </div>
+    </nav>
+    <div class="d-flex flex-column" id="content-wrapper">
+        <div id="content">
+            <div class="container-fluid">
+                <h3 class="text-dark mb-4 mt-4">Your Recall Response History</h3>
+                <div class="card shadow">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Recall ID</th>
+                                        <th>Product Name</th>
+                                        <th>Response Type</th>
+                                        <th>Date Submitted</th>
+                                        <th>Your Notes</th>
+                                        <th>Attached Evidence</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for r in responses %}
+                                    <tr>
+                                        <td>{{ r.recall_id }}</td>
+                                        <td>{{ r.product_name }}</td>
+                                        <td>
+                                            {% if r.action_taken == 'Removed' %}
+                                            <span class="badge bg-success">Removed</span>
+                                            {% elif r.action_taken == 'Repaired' %}
+                                            <span class="badge bg-warning text-dark">Repaired</span>
+                                            {% elif r.action_taken == 'Rebutted' %}
+                                            <span class="badge bg-danger">Rebutted</span>
+                                            {% else %}
+                                            <span class="badge bg-secondary">Unknown</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ r.timestamp.strftime('%Y-%m-%d') }}</td>
+                                        <td>{{ r.comments }}</td>
+                                        <td>
+                                            {% if r.filename %}
+                                            <a href="{{ url_for('static', filename='uploads/' ~ r.filename) }}" target="_blank" class="btn btn-outline-secondary btn-sm">View</a>
+                                            {% else %}N/A{% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <footer class="bg-white sticky-footer">
+            <div class="container my-auto">
+                <div class="text-center my-auto copyright">
+                    <span>Copyright © CPSC Recalls 2025</span>
+                </div>
+            </div>
+        </footer>
+    </div><a class="border rounded d-inline scroll-to-top" href="#page-top"><i class="fas fa-angle-up"></i></a>
+</div>
+<script src="static/assets/bootstrap/js/bootstrap.min.js"></script>
+<script src="static/assets/js/bs-init.js"></script>
+<script src="https://cdn.datatables.net/1.10.15/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.15/js/dataTables.bootstrap.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.20/js/dataTables.bootstrap4.min.js"></script>
+<script src="static/assets/js/Bootstrap-DataTables-main.js"></script>
+<script src="static/assets/js/theme.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $('#dataTable').DataTable();
+    });
+</script>
+</body>
+</html>
