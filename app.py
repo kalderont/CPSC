@@ -563,5 +563,15 @@ def delete_annotation():
 def contact_seller():
     return render_template('contact_seller.html')
 
+@app.route('/submit_response', methods=['POST'])
+def submit_response():
+    action_taken = request.form['action_taken']
+    comments = request.form['comments']
+    file = request.files.get('evidence')
+
+    flash("Your response has been submitted!")
+    return redirect('/dashboard')
+
+
 if __name__ == "__main__":
     app.run(debug=True)
