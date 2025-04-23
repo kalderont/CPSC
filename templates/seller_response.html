@@ -1,0 +1,41 @@
+<!-- seller_response.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Respond to Violation</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body class="bg-light">
+    <div class="container mt-5">
+        <div class="card shadow">
+            <div class="card-body">
+                <h3 class="text-center mb-4">Respond to Violation</h3>
+                <form action="/submit_response" method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="action_taken" class="form-label">Select Action Taken</label>
+                        <select class="form-select" name="action_taken" id="action_taken" required>
+                            <option value="">-- Choose an option --</option>
+                            <option value="Removed">Removed</option>
+                            <option value="Repaired">Repaired</option>
+                            <option value="Rebutted">Rebutted</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="comments" class="form-label">Additional Comments</label>
+                        <textarea class="form-control" id="comments" name="comments" rows="4" placeholder="Add your explanation..." required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="evidence" class="form-label">Upload Evidence (optional)</label>
+                        <input class="form-control" type="file" name="evidence" id="evidence" accept="image/*,application/pdf">
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success">Submit Response</button>
+                        <a href="/dashboard" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
