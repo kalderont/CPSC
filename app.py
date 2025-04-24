@@ -36,22 +36,30 @@ def login():
         conn = get_db_connection()
         cursor = conn.cursor()
 
+        # Check Employee table
         cursor.execute("SELECT * FROM Employee WHERE Email = ? AND Pass = ?", (email, password))
-        user = cursor.fetchone()
+        employee = cursor.fetchone()
 
-        # if user:
-        #     session['user_id'] = user[-1] 
-        #     session['is_manager'] = user[-3]  
-        #     return redirect(url_for('dashboard'))
-        if user:
-            session['user_id'] = user[0] 
-            session['is_manager'] = user[-2]  
+        if employee:
+            session['user_id'] = employee[0]
+            session['is_manager'] = employee[-2]
+            session['user_type'] = 'employee'
             return redirect(url_for('dashboard'))
+
+        # Check Seller table
+        cursor.execute("SELECT * FROM Seller WHERE Seller_Email = ? AND Seller_Password = ?", (email, password))
+        seller = cursor.fetchone()
+
+        if seller:
+            session['seller_id'] = seller[0]
+            session['user_type'] = 'seller'
+            return redirect(url_for('seller_dashboard'))
 
         flash('Invalid credentials. Please try again.', 'danger')
         return redirect(url_for('login'))
 
     return render_template('login.html')
+
 
 
 @app.route('/logout')
@@ -89,32 +97,49 @@ def forgotpassword():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        first_name = request.form['first_name']
-        last_name = request.form['last_name']
-        email = request.form['email']
-        password = request.form['password']
-        confirm_password = request.form['confirm_password']
-        user_type = request.form['user_type']
-        manager = 1 if user_type == 'manager' else 0
+        first_name = request.form.get('first_name')
+        last_name = request.form.get('last_name')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
+        user_type = request.form.get('user_type')
+
         if password != confirm_password:
             flash("Passwords do not match!", "danger")
             return redirect(url_for('register'))
+
         conn = get_db_connection()
         cursor = conn.cursor()
+
         try:
-            cursor.execute("""
-                INSERT INTO employee (First_Name, Last_Name, Email, Pass, Manager)
-                VALUES (?, ?, ?, ?, ?)
-            """, (first_name, last_name, email, password, manager))
+            if user_type == 'seller':
+                # Insert into Seller table
+                cursor.execute("""
+                    INSERT INTO Seller (Seller_Name, Seller_Email, Seller_Password)
+                    VALUES (?, ?, ?)
+                """, (f"{first_name} {last_name}", email, password))
+                flash("Seller account created successfully!", "success")
+
+            else:
+                # Determine if the user is a manager or investigator
+                manager = 1 if user_type == 'manager' else 0
+                cursor.execute("""
+                    INSERT INTO Employee (First_Name, Last_Name, Email, Pass, Manager)
+                    VALUES (?, ?, ?, ?, ?)
+                """, (first_name, last_name, email, password, manager))
+                flash("Employee account created successfully!", "success")
+
             conn.commit()
-            flash("Account successfully created!", "success")
-            return redirect(url_for('login')) 
+            return redirect(url_for('login'))
+
         except Exception as e:
             flash(f"Error: {e}", "danger")
         finally:
             cursor.close()
             conn.close()
-    return render_template('register.html')  
+
+    return render_template('register.html')
+
 
 @app.route('/dashboard')
 def dashboard():
@@ -564,35 +589,100 @@ def contact_seller():
     return render_template('contact_seller.html')
 
 
-@app.route('/seller_response')
-def seller_response():
-    return render_template('seller_response.html')
 
-@app.route('/response_history')
-def response_history():
-    if 'user_id' not in session:
-        flash('Please log in to view your recall response history.', 'danger')
+@app.route('/sellerresponse')
+def seller_response():
+    seller_id = session.get('seller_id')
+    if not seller_id:
+        flash("Please log in to access this page.", "warning")
         return redirect(url_for('login'))
 
     conn = get_db_connection()
     cursor = conn.cursor()
 
     cursor.execute("""
-        SELECT r.Recall_ID, r.Name_of_product, rs.Action_Taken, rs.Timestamp, rs.Notes, rs.Evidence_File
-        FROM Recall_Response rs
-        JOIN Recall r ON rs.Recall_ID = r.Recall_ID
-        WHERE rs.Employee_ID = ?
-        ORDER BY rs.Timestamp DESC
-    """, (session['user_id'],))
+        SELECT TOP 1 Recall_ID, Product_Name, Hazard, Units_Affected, Platform, Image_URL
+        FROM Recall
+        ORDER BY Recall_ID DESC
+    """)
+    recall = cursor.fetchone()
+
+    recall_data = {
+        'recall_id': recall.Recall_ID,
+        'recall_number': recall.Recall_ID,
+        'product_name': recall.Product_Name,
+        'hazard': recall.Hazard,
+        'units': recall.Units_Affected,
+        'platform': recall.Platform,
+        'image_url': recall.Image_URL
+    }
+
+    cursor.close()
+    conn.close()
+
+    return render_template('seller_response.html', recall=recall_data)
+
+@app.route('/submit_response', methods=['POST'])
+def submit_response():
+    seller_id = session.get('seller_id')
+    if not seller_id:
+        flash("Please log in first.", "warning")
+        return redirect(url_for('login'))
+
+    recall_id = request.form['recall_id']
+    action = request.form['action_taken']
+    comments = request.form['comments']
+    file = request.files.get('evidence')
+    filename = None
+
+    if file and file.filename:
+        filename = secure_filename(file.filename)
+        file.save(os.path.join('static/uploads', filename))
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        INSERT INTO Seller_Response (Seller_ID, Recall_ID, Action_Taken, Comments, Filename, Response_Date)
+        VALUES (?, ?, ?, ?, ?, GETDATE())
+    """, (seller_id, recall_id, action, comments, filename))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    flash("Response submitted successfully.", "success")
+    return redirect(url_for('response_history'))
+
+
+
+@app.route('/response_history')
+def response_history():
+    seller_id = session.get('seller_id')
+    if not seller_id:
+        flash("Please log in to view your responses.", "warning")
+        return redirect(url_for('login'))
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT sr.Recall_ID, r.Product_Name, sr.Action_Taken, sr.Comments, sr.Filename, sr.Response_Date
+        FROM Seller_Response sr
+        JOIN Recall r ON sr.Recall_ID = r.Recall_ID
+        WHERE sr.Seller_ID = ?
+        ORDER BY sr.Response_Date DESC
+    """, seller_id)
 
     rows = cursor.fetchall()
+
     responses = [{
-        'recall_id': row[0],
-        'product_name': row[1],
-        'action_taken': row[2],
-        'timestamp': row[3],
-        'comments': row[4],
-        'filename': row[5]
+        'recall_id': row.Recall_ID,
+        'product_name': row.Product_Name,
+        'action_taken': row.Action_Taken,
+        'comments': row.Comments,
+        'filename': row.Filename,
+        'timestamp': row.Response_Date
     } for row in rows]
 
     cursor.close()
@@ -604,3 +694,4 @@ def response_history():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
