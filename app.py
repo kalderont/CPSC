@@ -568,6 +568,39 @@ def contact_seller():
 def seller_response():
     return render_template('seller_response.html')
 
+@app.route('/response_history')
+def response_history():
+    if 'user_id' not in session:
+        flash('Please log in to view your recall response history.', 'danger')
+        return redirect(url_for('login'))
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT r.Recall_ID, r.Name_of_product, rs.Action_Taken, rs.Timestamp, rs.Notes, rs.Evidence_File
+        FROM Recall_Response rs
+        JOIN Recall r ON rs.Recall_ID = r.Recall_ID
+        WHERE rs.Employee_ID = ?
+        ORDER BY rs.Timestamp DESC
+    """, (session['user_id'],))
+
+    rows = cursor.fetchall()
+    responses = [{
+        'recall_id': row[0],
+        'product_name': row[1],
+        'action_taken': row[2],
+        'timestamp': row[3],
+        'comments': row[4],
+        'filename': row[5]
+    } for row in rows]
+
+    cursor.close()
+    conn.close()
+
+    return render_template('response_history.html', responses=responses)
+
+
 
 if __name__ == "__main__":
     app.run(debug=True)
