@@ -157,6 +157,10 @@ def dashboard():
     else:
         return redirect(url_for('login'))  # Redirect to login if no session
 
+@app.route('/seller-dashboard')
+def seller_dashboard():
+    return render_template('seller_dashboard.html')  # Render regular user page
+
 @app.route('/importdata')
 def import_data():
     conn = get_db_connection()
@@ -601,7 +605,7 @@ def seller_response():
     cursor = conn.cursor()
 
     cursor.execute("""
-        SELECT TOP 1 Recall_ID, Product_Name, Hazard, Units_Affected, Platform, Image_URL
+        SELECT TOP 1 Recall_ID, Name_of_product, Hazard_Description, Units
         FROM Recall
         ORDER BY Recall_ID DESC
     """)
@@ -610,11 +614,9 @@ def seller_response():
     recall_data = {
         'recall_id': recall.Recall_ID,
         'recall_number': recall.Recall_ID,
-        'product_name': recall.Product_Name,
-        'hazard': recall.Hazard,
-        'units': recall.Units_Affected,
-        'platform': recall.Platform,
-        'image_url': recall.Image_URL
+        'product_name': recall.Name_of_product,
+        'hazard': recall.Hazard_Description,
+        'units': recall.Units
     }
 
     cursor.close()
@@ -624,35 +626,35 @@ def seller_response():
 
 @app.route('/submit_response', methods=['POST'])
 def submit_response():
-    seller_id = session.get('seller_id')
-    if not seller_id:
-        flash("Please log in first.", "warning")
+    if 'seller_id' not in session:
+        flash("You must be logged in to submit a response.")
         return redirect(url_for('login'))
 
-    recall_id = request.form['recall_id']
-    action = request.form['action_taken']
-    comments = request.form['comments']
-    file = request.files.get('evidence')
-    filename = None
+    seller_id = session['seller_id']
+    action = request.form.get('action_taken')  # e.g., Removed, Repaired, Rebutted
+    comments = request.form.get('comments', '')
 
-    if file and file.filename:
-        filename = secure_filename(file.filename)
-        file.save(os.path.join('static/uploads', filename))
+    if not action:
+        flash("Action type is required.")
+        return redirect(url_for('seller_response'))
+
+    response_text = f"{action} - {comments}"
 
     conn = get_db_connection()
     cursor = conn.cursor()
 
     cursor.execute("""
-        INSERT INTO Seller_Response (Seller_ID, Recall_ID, Action_Taken, Comments, Filename, Response_Date)
-        VALUES (?, ?, ?, ?, ?, GETDATE())
-    """, (seller_id, recall_id, action, comments, filename))
+        INSERT INTO Marketplace_Response (Seller_ID, Response_Text, Date_Of_Response)
+        VALUES (?, ?, GETDATE())
+    """, (seller_id, response_text))
 
     conn.commit()
     cursor.close()
     conn.close()
 
-    flash("Response submitted successfully.", "success")
+    flash("Your message has been submitted and recorded in your response history.")
     return redirect(url_for('response_history'))
+
 
 
 
@@ -666,29 +668,41 @@ def response_history():
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    cursor.execute("""
-        SELECT sr.Recall_ID, r.Product_Name, sr.Action_Taken, sr.Comments, sr.Filename, sr.Response_Date
-        FROM Seller_Response sr
-        JOIN Recall r ON sr.Recall_ID = r.Recall_ID
-        WHERE sr.Seller_ID = ?
-        ORDER BY sr.Response_Date DESC
-    """, seller_id)
+    cursor.execute(
+        """
+        SELECT i.Recall_ID,
+               i.Recall_Name,
+               mr.Date_Of_Response,
+               mr.Response_Text
+        FROM   Marketplace_Response AS mr
+        JOIN   Incidents           AS i ON mr.Incident_ID = i.Incident_ID
+        ORDER  BY mr.Date_Of_Response DESC
+        """
+    )
 
     rows = cursor.fetchall()
 
-    responses = [{
-        'recall_id': row.Recall_ID,
-        'product_name': row.Product_Name,
-        'action_taken': row.Action_Taken,
-        'comments': row.Comments,
-        'filename': row.Filename,
-        'timestamp': row.Response_Date
-    } for row in rows]
+    # build clean response objects
+    responses = []
+    for row in rows:
+        text = row.Response_Text or ""                  # guard against NULL
+        # split on the FIRST “ - ”, strip spaces
+        part_a, *part_b = [p.strip() for p in text.split(" - ", 1)]
+        responses.append({
+            "recall_id":    f"R-{row.Recall_ID}",
+            "product_name": row.Recall_Name,
+            "action_taken": part_a,                     # before the hyphen
+            "timestamp":    row.Date_Of_Response,
+            "comments":     part_b[0] if part_b else "",# after the hyphen (if any)
+            "filename":     None                        # add file path later if needed
+        })
 
     cursor.close()
     conn.close()
 
-    return render_template('response_history.html', responses=responses)
+    return render_template("response_history.html", responses=responses)
+
+
 
 
 
