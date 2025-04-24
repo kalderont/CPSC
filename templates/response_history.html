@@ -30,12 +30,12 @@
             </a>
             <hr class="sidebar-divider my-0">
             <ul class="navbar-nav text-light" id="accordionSidebar">
-                <li class="nav-item"><a class="nav-link" href="/logout"><i class="far fa-user-circle"></i><span>Logout</span></a></li>
-                <li class="nav-item"><a class="nav-link" href="/profile"><i class="fas fa-user"></i><span>Profile</span></a></li>
-                <li class="nav-item"><a class="nav-link" href="/dashboard"><i class="fas fa-table"></i><span>Dashboard</span></a></li>
-                <li class="nav-item"><a class="nav-link active" href="/importdata"><i class="fas fa-tachometer-alt"></i><span>Import Data</span></a></li>
-                <li class="nav-item"><a class="nav-link" href="/highpriority"><i class="fas fa-window-maximize"></i><span>High Priority</span></a></li>
-            </ul>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}"><i class="far fa-user-circle"></i><span>Logout</span></a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('profile') }}"><i class="fas fa-user"></i><span>Profile</span></a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('seller_dashboard') }}"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('seller_response') }}"><i class="fas fa-envelope"></i><span>Message</span></a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('response_history') }}"><i class="fas fa-reply"></i><span>Responses</span></a></li>
+              </ul>
             <div class="text-center d-none d-md-inline"><button class="btn rounded-circle border-0" id="sidebarToggle" type="button"></button></div>
         </div>
     </nav>
@@ -60,29 +60,34 @@
                                 <tbody>
                                     {% for r in responses %}
                                     <tr>
-                                        <td>{{ r.recall_id }}</td>
-                                        <td>{{ r.product_name }}</td>
-                                        <td>
-                                            {% if r.action_taken == 'Removed' %}
-                                            <span class="badge bg-success">Removed</span>
-                                            {% elif r.action_taken == 'Repaired' %}
-                                            <span class="badge bg-warning text-dark">Repaired</span>
-                                            {% elif r.action_taken == 'Rebutted' %}
-                                            <span class="badge bg-danger">Rebutted</span>
-                                            {% else %}
-                                            <span class="badge bg-secondary">Unknown</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>{{ r.timestamp.strftime('%Y-%m-%d') }}</td>
-                                        <td>{{ r.comments }}</td>
-                                        <td>
-                                            {% if r.filename %}
-                                            <a href="{{ url_for('static', filename='uploads/' ~ r.filename) }}" target="_blank" class="btn btn-outline-secondary btn-sm">View</a>
-                                            {% else %}N/A{% endif %}
-                                        </td>
+                                      <td>{{ r.recall_id }}</td>
+                                      <td>{{ r.product_name }}</td>
+                                      <td>
+                                        {% if r.action_taken == 'Removed' %}
+                                          <span class="badge bg-success">Removed</span>
+                                        {% elif r.action_taken == 'Repaired' %}
+                                          <span class="badge bg-warning text-dark">Repaired</span>
+                                        {% elif r.action_taken == 'Rebutted' %}
+                                          <span class="badge bg-danger">Rebutted</span>
+                                        {% else %}
+                                          <span class="badge bg-secondary">{{ r.action_taken }}</span>
+                                        {% endif %}
+                                      </td>
+                                      <td>{{ r.timestamp }}</td>
+                                      <td>{{ r.comments }}</td>
+                                      <td>
+                                        {% if r.filename %}
+                                          <a href="{{ url_for('static', filename='uploads/' ~ r.filename) }}" target="_blank"
+                                             class="btn btn-outline-secondary btn-sm">View</a>
+                                        {% else %}
+                                        <tr>
+                                            <td colspan="6" class="text-center">You have no responses yet.</td>
+                                        </tr>
+                                        {% endif %}
+                                      </td>
                                     </tr>
                                     {% endfor %}
-                                </tbody>
+                                  </tbody>
                             </table>
                         </div>
                     </div>
