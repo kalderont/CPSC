@@ -686,7 +686,7 @@ def response_history():
     responses = []
     for row in rows:
         text = row.Response_Text or ""                  # guard against NULL
-        # split on the FIRST “ - ”, strip spaces
+        # split on the FIRST “ - ”, strip spaces
         part_a, *part_b = [p.strip() for p in text.split(" - ", 1)]
         responses.append({
             "recall_id":    f"R-{row.Recall_ID}",
@@ -708,4 +708,3 @@ def response_history():
 
 if __name__ == "__main__":
     app.run(debug=True)
-
